@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hyperloop Awakening — Non-Liquidative Lending</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- Ambient background: black hole radial glow -->
+<div class="ambient">
+  <div class="ambient-glow ambient-glow-1"></div>
+  <div class="ambient-glow ambient-glow-2"></div>
+  <div class="ambient-grid"></div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="brand">
+      <img src="hyperloop-wordmark.svg" alt="Hyperloop" class="brand-logo" />
+    </a>
+
+    <nav class="nav">
+      <button class="nav-link nav-link-active" data-tab="markets">Markets</button>
+      <button class="nav-link" data-tab="positions">Positions</button>
+      <button class="nav-link" data-tab="maker">Maker</button>
+      <button class="nav-link" data-tab="whitepaper">Whitepaper</button>
+    </nav>
+
+    <div class="header-right">
+      <div class="chain-selector">
+        <span class="chain-dot"></span>
+        Cardano
+      </div>
+      <button class="btn-wallet" id="btnWallet">
+        <span class="wallet-status" id="walletStatus">Connect Wallet</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- HERO STRIP -->
+  <section class="hero-strip">
+    <div class="hero-strip-inner">
+      <div class="hero-strip-left">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-dot"></span>
+          NON-LIQUIDATIVE LENDING · MAINNET-BETA
+        </div>
+        <h1 class="hero-title">
+          Borrow against BTC.<br />
+          <span class="hero-title-accent">Never get liquidated.</span>
+        </h1>
+        <p class="hero-subtitle">
+          Fixed-rate, fixed-maturity credit markets with option-attributed collateral.
+          Every loan is protected by a put — no health checks, no margin calls.
+        </p>
+        <div class="hero-invariant">
+          <div class="invariant-label">THE INVARIANT</div>
+          <div class="invariant-equation">
+            <span class="eq-term">min(S, K)</span>
+            <span class="eq-op">+</span>
+            <span class="eq-term">max(K − S, 0)</span>
+            <span class="eq-op">=</span>
+            <span class="eq-result">K</span>
+          </div>
+          <div class="invariant-caption">
+            collateral value  +  put payoff  =  loan repaid, at every terminal price
+          </div>
+        </div>
+      </div>
+      <div class="hero-strip-right">
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-label">TOTAL VALUE LOCKED</div>
+            <div class="hero-stat-value">$187.4M</div>
+            <div class="hero-stat-delta positive">+ $12.1M / 24h</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-label">ACTIVE MARKETS</div>
+            <div class="hero-stat-value">14</div>
+            <div class="hero-stat-delta">3 collaterals · 4 maturities</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-label">OUTSTANDING CREDIT</div>
+            <div class="hero-stat-value">$142.3M</div>
+            <div class="hero-stat-delta">Avg 82 days to maturity</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-label">PAT COVERAGE</div>
+            <div class="hero-stat-value">100.4%</div>
+            <div class="hero-stat-delta positive">Fully covered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKETS TAB -->
+  <section class="tab-panel tab-panel-active" data-panel="markets">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Markets</h2>
+        <p class="section-subtitle">Isolated, immutable, fixed-rate. Every credit unit is backed by a put option at strike K.</p>
+      </div>
+      <div class="section-actions">
+        <div class="filter-group">
+          <button class="filter-chip filter-chip-active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="BTC">BTC</button>
+          <button class="filter-chip" data-filter="ETH">ETH</button>
+          <button class="filter-chip" data-filter="ADA">ADA</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="marketSearch" placeholder="Search markets…" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Markets table -->
+    <div class="markets-table-wrapper">
+      <div class="markets-table">
+        <div class="markets-th">
+          <div class="th-cell th-market">Market</div>
+          <div class="th-cell th-num">Strike K</div>
+          <div class="th-cell th-num">Rate (APR)</div>
+          <div class="th-cell th-num">Maturity</div>
+          <div class="th-cell th-num">Total Credit</div>
+          <div class="th-cell th-num">Available</div>
+          <div class="th-cell th-num">PAT Src</div>
+          <div class="th-cell th-action"></div>
+        </div>
+        <div id="marketsList"><!-- rendered by app.js --></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POSITIONS TAB -->
+  <section class="tab-panel" data-panel="positions">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Your Positions</h2>
+        <p class="section-subtitle">Active borrows and credit units across all markets.</p>
+      </div>
+    </div>
+
+    <div class="positions-empty" id="positionsEmpty">
+      <div class="empty-icon">◇</div>
+      <h3>No active positions</h3>
+      <p>Open a position from the Markets tab. Borrowers post collateral to receive a fixed-rate loan; lenders buy credit units at a discount.</p>
+      <button class="btn-primary" onclick="switchTab('markets')">Browse Markets</button>
+    </div>
+
+    <div class="positions-content" id="positionsContent" style="display: none;">
+      <div class="position-group">
+        <h3 class="position-group-title">Borrows</h3>
+        <div id="borrowsList"></div>
+      </div>
+      <div class="position-group">
+        <h3 class="position-group-title">Credit</h3>
+        <div id="creditList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAKER TAB -->
+  <section class="tab-panel" data-panel="maker">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Maker Console</h2>
+        <p class="section-subtitle">Publish offers backed by external option inventory. No capital locked until fill.</p>
+      </div>
+    </div>
+
+    <div class="maker-grid">
+      <!-- LEFT: publish offer -->
+      <div class="maker-panel">
+        <div class="panel-head">
+          <div class="panel-title">Publish Offer</div>
+          <div class="panel-badge">OFF-CHAIN SIGNED</div>
+        </div>
+
+        <div class="form-group">
+          <label>Market</label>
+          <select id="makerMarket">
+            <option value="btc-usdc-90d-100k">BTC / USDC · 90d · K=$100,000</option>
+            <option value="btc-usdc-90d-80k">BTC / USDC · 90d · K=$80,000</option>
+            <option value="eth-usdc-60d-3500">ETH / USDC · 60d · K=$3,500</option>
+            <option value="ada-usdc-30d-0.65">ADA / USDC · 30d · K=$0.65</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Side</label>
+            <div class="segmented">
+              <button class="seg seg-active" data-side="buy">Buy Debt</button>
+              <button class="seg" data-side="sell">Sell Credit</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Size (USDC)</label>
+            <input type="text" value="500,000" id="makerSize" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Discount Price</label>
+            <input type="text" value="0.935" id="makerPrice" />
+          </div>
+          <div class="form-group">
+            <label>Implied APR</label>
+            <div class="derived-value" id="makerImpliedRate">28.4 %</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>PAT Source</label>
+          <div class="pat-source-grid">
+            <label class="pat-radio pat-radio-active">
+              <input type="radio" name="patSrc" value="deribit" checked />
+              <div class="pat-radio-body">
+                <div class="pat-name">Deribit</div>
+                <div class="pat-meta">Custodial attest · Coinbase</div>
+              </div>
+            </label>
+            <label class="pat-radio">
+              <input type="radio" name="patSrc" value="derive" />
+              <div class="pat-radio-body">
+                <div class="pat-name">Derive</div>
+                <div class="pat-meta">On-chain native</div>
+              </div>
+            </label>
+            <label class="pat-radio">
+              <input type="radio" name="patSrc" value="internal" />
+              <div class="pat-radio-body">
+                <div class="pat-name">Internal Pool</div>
+                <div class="pat-meta">Protocol writer pool</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary">Merkle Batch</button>
+          <button class="btn-primary">Sign & Publish Offer</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: inventory + outstanding offers -->
+      <div class="maker-panel">
+        <div class="panel-head">
+          <div class="panel-title">Your Inventory</div>
+          <div class="panel-badge panel-badge-live">LIVE</div>
+        </div>
+
+        <div class="inv-row">
+          <div class="inv-label">Loan token balance (Morpho Blue)</div>
+          <div class="inv-value">$2,140,000 USDC</div>
+        </div>
+        <div class="inv-row">
+          <div class="inv-label">PAT budget (Deribit)</div>
+          <div class="inv-value">
+            <span class="inv-progress">
+              <span class="inv-progress-bar" style="width:63%"></span>
+            </span>
+            42.5 / 67.5 BTC
+          </div>
+        </div>
+        <div class="inv-row">
+          <div class="inv-label">PAT budget (Derive)</div>
+          <div class="inv-value">
+            <span class="inv-progress">
+              <span class="inv-progress-bar" style="width:22%"></span>
+            </span>
+            2,200 / 10,000 ETH
+          </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <div class="panel-head">
+          <div class="panel-title">Outstanding Offers</div>
+          <div class="panel-badge">3 LIVE</div>
+        </div>
+        <div class="offers-mini" id="makerOffers"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHITEPAPER TAB -->
+  <section class="tab-panel" data-panel="whitepaper">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Protocol Reference</h2>
+        <p class="section-subtitle">The mechanics of Awakening, in five diagrams.</p>
+      </div>
+    </div>
+
+    <div class="wp-grid">
+      <div class="wp-card">
+        <div class="wp-num">§ 2</div>
+        <h3 class="wp-title">Market Definition</h3>
+        <div class="wp-code">M = ⟨ collateral, loan, oracle, T_M, K, settlement, gates ⟩</div>
+        <p class="wp-body">Isolated, immutable. Any market may be created permissionlessly. maxDebt = K per unit collateral. Strikes may exceed 100% of spot.</p>
+      </div>
+
+      <div class="wp-card">
+        <div class="wp-num">§ 3</div>
+        <h3 class="wp-title">Offer-Based Liquidity</h3>
+        <p class="wp-body">Makers publish executable offers off-chain — no locked capital. On take, a callback fires and the maker delivers loan tokens + PAT atomically. Multi-market offers share a consumption budget.</p>
+      </div>
+
+      <div class="wp-card wp-card-wide">
+        <div class="wp-num">§ 4</div>
+        <h3 class="wp-title">Put Attribution Token (PAT)</h3>
+        <p class="wp-body">Every credit unit is backed by a put option at strike K, expiring at T_M. PATs are sourced from three classes: on-chain native (Derive, Premia, Panoptic), off-chain attested (Deribit via Coinbase Custody), or protocol-internal writer pool. Attribution is verified atomically at fill time.</p>
+      </div>
+
+      <div class="wp-card">
+        <div class="wp-num">§ 5</div>
+        <h3 class="wp-title">Maturity Settlement</h3>
+        <p class="wp-body">At T_M: oracle read once, PATs settle, repayment window opens (24h default). Borrower repays or walks. No interim liquidation path exists in protocol code.</p>
+      </div>
+
+      <div class="wp-card">
+        <div class="wp-num">§ 11</div>
+        <h3 class="wp-title">Zero-Coupon Collar</h3>
+        <p class="wp-body">Generalized markets attach a call at K_call in addition to the put at K_put. Choosing K_call so C(K_call) = P(K_put) + r_f · τ yields a zero-cost loan — surrendering upside above the cap.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MARKET DETAIL SLIDE-OVER -->
+<div class="slideover" id="marketDetail">
+  <div class="slideover-backdrop" onclick="closeMarketDetail()"></div>
+  <div class="slideover-panel">
+    <button class="slideover-close" onclick="closeMarketDetail()">✕</button>
+    <div id="marketDetailBody"></div>
+  </div>
+</div>
+
+<!-- BORROW / LEND MODAL -->
+<div class="modal" id="txModal">
+  <div class="modal-backdrop" onclick="closeTxModal()"></div>
+  <div class="modal-panel">
+    <button class="modal-close" onclick="closeTxModal()">✕</button>
+    <div id="txModalBody"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
